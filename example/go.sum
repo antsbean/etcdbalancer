@@ -1,5 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/antsbean/etcdbalancer v0.0.0-20190827111134-d94ec644d199 h1:wSfnQewu2BU2k6MgkJLKdVaBoA0yqRC3/2uIIJoIJ84=
+github.com/antsbean/etcdbalancer v0.0.0-20190827111134-d94ec644d199/go.mod h1:PZeYGLV3huPwCgvuRMoc7+LpNsNblTYgFSEr8RMOyOM=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/coreos/etcd v3.3.15+incompatible h1:+9RjdC18gMxNQVvSiXvObLu29mOFmkgdsB4cRTlV+EE=
 github.com/coreos/etcd v3.3.15+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
