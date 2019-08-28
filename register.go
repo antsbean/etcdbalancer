@@ -10,7 +10,8 @@ import (
 	"time"
 )
 
-type EtcdRegister struct {
+// Register grpc server register to etcd and keepalive
+type Register struct {
 	etcdClient *etcd.Client
 	key        string
 	addr       string
@@ -18,11 +19,12 @@ type EtcdRegister struct {
 	closedChan chan struct{}
 }
 
-func NewEtcdRegister(schema, name, addr string, config etcd.Config) *EtcdRegister {
+// NewRegister new register
+func NewRegister(schema, name, addr string, config etcd.Config) *Register {
 	if cli, err := etcd.New(config); err != nil {
 		panic(err)
 	} else {
-		return &EtcdRegister{etcdClient: cli,
+		return &Register{etcdClient: cli,
 			key:        fmt.Sprintf("/%s/%s/%s", schema, name, addr),
 			addr:       addr,
 			closedChan: make(chan struct{}),
@@ -31,14 +33,14 @@ func NewEtcdRegister(schema, name, addr string, config etcd.Config) *EtcdRegiste
 	}
 }
 
-// Register register service
-func (r *EtcdRegister) Register(ttl int64) error {
+// RegisterServer register server to etcd
+func (r *Register) RegisterServer(ttl int64) error {
 	if r.etcdClient == nil {
 		panic("etcd client is nil")
 	}
 	lease := etcd.NewLease(r.etcdClient)
 	kv := etcd.NewKV(r.etcdClient)
-	if leaseId, err := r.withAlive(kv, lease, 0, r.key, ttl); err != nil {
+	if leaseId, err := r.withAlive(kv, lease, etcd.NoLease, r.key, ttl); err != nil {
 		return err
 	} else {
 		r.waitGroup.Add(1)
@@ -69,35 +71,34 @@ func (r *EtcdRegister) Register(ttl int64) error {
 	return nil
 }
 
-func (r *EtcdRegister) withAlive(kv etcd.KV, lease etcd.Lease, leaseId etcd.LeaseID, key string, ttl int64) (etcd.LeaseID, error) {
-	if leaseId == 0 {
-		leaseResp, err := lease.Grant(context.TODO(), ttl)
-		if err != nil {
-			return 0, err
-		}
-		if _, err := kv.Put(context.TODO(), r.key, r.addr, etcd.WithLease(leaseResp.ID)); err != nil {
-			return 0, err
-		}
-		leaseId = leaseResp.ID
-		return leaseId, nil
-	} else if _, err := lease.KeepAlive(context.TODO(), leaseId); err == rpctypes.ErrLeaseNotFound {
-		//TODO if keepalive failed, retry grant key ttl
-		return r.withAlive(kv, lease, 0, key, ttl)
-	} else if err != nil {
-		return 0, err
-	} else {
-		log.Printf("key %s leaseid %d error %v", r.key, leaseId, err)
-		return leaseId, nil
-	}
-}
-
-// UnRegister remove service from etcd
-func (r *EtcdRegister) UnRegister() {
+// UnRegister remove server from etcd
+func (r *Register) UnRegister() {
 	if r.etcdClient != nil {
 		_, _ = r.etcdClient.Delete(context.Background(), r.key)
 		_ = r.etcdClient.Close()
 		r.etcdClient = nil
 		close(r.closedChan)
 		r.waitGroup.Wait()
+	}
+}
+
+func (r *Register) withAlive(kv etcd.KV, lease etcd.Lease, leaseId etcd.LeaseID, key string, ttl int64) (etcd.LeaseID, error) {
+	if leaseId == etcd.NoLease {
+		leaseResp, err := lease.Grant(context.TODO(), ttl)
+		if err != nil {
+			return etcd.NoLease, err
+		}
+		if _, err := kv.Put(context.TODO(), r.key, r.addr, etcd.WithLease(leaseResp.ID)); err != nil {
+			return etcd.NoLease, err
+		}
+		leaseId = leaseResp.ID
+		return leaseId, nil
+	} else if _, err := lease.KeepAlive(context.TODO(), leaseId); err == rpctypes.ErrLeaseNotFound {
+		//TODO if keepalive failed, retry grant key ttl
+		return r.withAlive(kv, lease, etcd.NoLease, key, ttl)
+	} else if err != nil {
+		return etcd.NoLease, err
+	} else {
+		return leaseId, nil
 	}
 }

@@ -24,7 +24,7 @@ func (s *Server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloRe
 }
 
 var grpcSrv *grpc.Server
-var etcdRegister *etcdbalancer.EtcdRegister
+var etcdRegister *etcdbalancer.Register
 
 func runRpcServer(etcdAddr string, addr string) {
 	log.Printf("start grpc server %s", addr)
@@ -34,7 +34,7 @@ func runRpcServer(etcdAddr string, addr string) {
 		defer listener.Close()
 		grpcSrv = grpc.NewServer()
 		pb.RegisterGreeterServer(grpcSrv, &Server{})
-		etcdRegister = etcdbalancer.NewEtcdRegister("helloword", "project/test", addr,
+		etcdRegister = etcdbalancer.NewRegister("helloword", "project/test", addr,
 			clientv3.Config{Endpoints: strings.Split(etcdAddr, ",")})
 
 		if err := etcdRegister.Register(50); err != nil {
