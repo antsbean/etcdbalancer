@@ -3,7 +3,7 @@ module github.com/antsbean/etcdbalancer/example
 go 1.12
 
 require (
-	github.com/antsbean/etcdbalancer v0.0.0-20190827111134-d94ec644d199
+	github.com/antsbean/etcdbalancer v0.0.0-20190828024707-6ce2c1e15df0
 	github.com/coreos/bbolt v1.3.3 // indirect
 	github.com/coreos/etcd v3.3.15+incompatible
 	github.com/coreos/go-semver v0.3.0 // indirect

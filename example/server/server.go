@@ -37,7 +37,7 @@ func runRpcServer(etcdAddr string, addr string) {
 		etcdRegister = etcdbalancer.NewRegister("helloword", "project/test", addr,
 			clientv3.Config{Endpoints: strings.Split(etcdAddr, ",")})
 
-		if err := etcdRegister.Register(50); err != nil {
+		if err := etcdRegister.RegisterServer(50); err != nil {
 			log.Fatalf("etcd register server failed %v", err)
 		}
 		if err := grpcSrv.Serve(listener); err != nil {
